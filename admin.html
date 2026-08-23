@@ -114,6 +114,7 @@
   <div id="dash">
     <div class="prod-tabs">
       <button class="prod-tab" id="tab-mobile" onclick="switchProduct('mobile')">📱 Mobile</button>
+      <button class="prod-tab" id="tab-mobile-standings" onclick="switchProduct('mobile-standings')">🏆 Mobile Standings</button>
       <button class="prod-tab active" id="tab-hooporia" onclick="switchProduct('hooporia')">🏀 Memory Basketball</button>
       <button class="prod-tab" id="tab-hooporia-standings" onclick="switchProduct('hooporia-standings')">📊 Memory Basketball Standings</button>
       <button class="prod-tab" id="tab-swish-basketball" onclick="switchProduct('swish-basketball')">🎯 Swish Basketball</button>
@@ -276,6 +277,7 @@ window.switchProduct = function(product){
   $('tab-hooporia').className = 'prod-tab' + (product==='hooporia' ? ' active' : '');
   $('tab-hooporia-standings').className = 'prod-tab' + (product==='hooporia-standings' ? ' active' : '');
   $('tab-mobile').className = 'prod-tab' + (product==='mobile' ? ' active' : '');
+  $('tab-mobile-standings').className = 'prod-tab' + (product==='mobile-standings' ? ' active' : '');
   $('tab-swish-basketball').className = 'prod-tab' + (product==='swish-basketball' ? ' active' : '');
   $('tab-swish-standings').className = 'prod-tab' + (product==='swish-standings' ? ' active' : '');
   $('tab-dynamic-memory').className = 'prod-tab' + (product==='dynamic-memory' ? ' active' : '');
@@ -283,7 +285,7 @@ window.switchProduct = function(product){
   $('tab-reaction-velocity').className = 'prod-tab' + (product==='reaction-velocity' ? ' active' : '');
   $('tab-reaction-velocity-standings').className = 'prod-tab' + (product==='reaction-velocity-standings' ? ' active' : '');
   $('mobile-note').className = 'mobile-note' + (product==='mobile' ? ' show' : '');
-  var label = product==='hooporia' ? '(Memory Basketball)' : product==='mobile' ? '(Mobile)' : product==='swish-basketball' ? '(Swish Basketball)' : product==='swish-standings' ? '(Swish Standings)' : product==='hooporia-standings' ? '(Memory Basketball Standings)' : product==='dynamic-memory' ? '(Dynamic Memory)' : product==='dynamic-memory-standings' ? '(Dynamic Memory Standings)' : product==='reaction-velocity' ? '(Reaction Velocity)' : product==='reaction-velocity-standings' ? '(Reaction Velocity Standings)' : '';
+  var label = product==='hooporia' ? '(Memory Basketball)' : product==='mobile' ? '(Mobile)' : product==='mobile-standings' ? '(Mobile Standings)' : product==='swish-basketball' ? '(Swish Basketball)' : product==='swish-standings' ? '(Swish Standings)' : product==='hooporia-standings' ? '(Memory Basketball Standings)' : product==='dynamic-memory' ? '(Dynamic Memory)' : product==='dynamic-memory-standings' ? '(Dynamic Memory Standings)' : product==='reaction-velocity' ? '(Reaction Velocity)' : product==='reaction-velocity-standings' ? '(Reaction Velocity Standings)' : '';
   $('add-product-label').textContent = label;
   $('list-product-label').textContent = label;
   loadLicenses();
@@ -337,6 +339,9 @@ var STANDINGS_BY_PRODUCT = {
     { name: 'Make It Count.', table: 'vr_make_it_count_standings' }
   ],
   'mobile': [
+    { name: 'The Handle', table: 'ritnome_mobile_handle_standings' }
+  ],
+  'mobile-standings': [
     { name: 'The Handle', table: 'ritnome_mobile_handle_standings' }
   ]
 };
