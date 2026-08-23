@@ -378,21 +378,33 @@ window.confirmStandingsReset = async function(table, gameName){
   msgEl.className = 'standings-msg';
   msgEl.textContent = 'Clearing…';
   try{
+    // A merely-successful HTTP status here does NOT prove anything
+    // was actually deleted — if a table's row-level-security policy
+    // silently blocks the delete (no matching "delete" policy, for
+    // example), Supabase still returns a normal success response
+    // while genuinely deleting zero rows. Asking for the deleted
+    // rows back (Prefer: return=representation) is what lets this
+    // tell the difference between "cleared" and "silently did
+    // nothing" — the array length is the real proof either way.
+    var headers = authHeaders();
+    headers['Prefer'] = 'return=representation';
     var r = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=gt.0', {
       method: 'DELETE',
-      headers: authHeaders()
+      headers: headers
     });
     if(!r.ok){
       msgEl.className = 'standings-msg bad';
       msgEl.textContent = 'Something went wrong — please try again';
       return;
     }
+    var deletedRows = [];
+    try{ deletedRows = await r.json(); }catch(e){}
     msgEl.className = 'standings-msg ok';
-    msgEl.textContent = gameName + '\'s standings cleared.';
+    msgEl.textContent = gameName + '\'s standings cleared (' + deletedRows.length + ' entries removed).';
     setTimeout(function(){
       $('reset-confirm-' + table).className = 'standings-confirm';
       msgEl.textContent = '';
-    }, 2000);
+    }, 2500);
   }catch(e){
     msgEl.className = 'standings-msg bad';
     msgEl.textContent = 'Connection problem — please try again';
