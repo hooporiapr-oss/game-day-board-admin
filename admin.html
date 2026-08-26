@@ -120,8 +120,6 @@
       <button class="prod-tab" id="tab-dynamic-memory-standings" onclick="switchProduct('dynamic-memory-standings')">🏆 Dynamic Memory Standings</button>
       <button class="prod-tab" id="tab-reaction-velocity" onclick="switchProduct('reaction-velocity')">⚡ Reaction Velocity</button>
       <button class="prod-tab" id="tab-reaction-velocity-standings" onclick="switchProduct('reaction-velocity-standings')">🏆 Reaction Velocity Standings</button>
-      <button class="prod-tab" id="tab-tres-tiebreaker" onclick="switchProduct('tres-tiebreaker')">🎯 Tres Pointer</button>
-      <button class="prod-tab" id="tab-tres-tiebreaker-standings" onclick="switchProduct('tres-tiebreaker-standings')">🏆 Tres Pointer Standings</button>
     </div>
 
     <div class="mobile-note" id="mobile-note">⚠️ Mobile codes work differently: a device stays unlocked permanently once it enters a valid code, using local on-device storage rather than a per-visit check. Revoking or deleting a code here blocks it for any <b>new</b> device — it will not retroactively lock out a device that already unlocked with it.</div>
@@ -276,14 +274,12 @@ window.switchProduct = function(product){
   $('tab-mobile').className = 'prod-tab' + (product==='mobile' ? ' active' : '');
   $('tab-mobile-recognition-standings').className = 'prod-tab' + (product==='mobile-recognition-standings' ? ' active' : '');
   $('tab-mobile-handle-standings').className = 'prod-tab' + (product==='mobile-handle-standings' ? ' active' : '');
-  $('tab-tres-tiebreaker').className = 'prod-tab' + (product==='tres-tiebreaker' ? ' active' : '');
-  $('tab-tres-tiebreaker-standings').className = 'prod-tab' + (product==='tres-tiebreaker-standings' ? ' active' : '');
   $('tab-dynamic-memory').className = 'prod-tab' + (product==='dynamic-memory' ? ' active' : '');
   $('tab-dynamic-memory-standings').className = 'prod-tab' + (product==='dynamic-memory-standings' ? ' active' : '');
   $('tab-reaction-velocity').className = 'prod-tab' + (product==='reaction-velocity' ? ' active' : '');
   $('tab-reaction-velocity-standings').className = 'prod-tab' + (product==='reaction-velocity-standings' ? ' active' : '');
   $('mobile-note').className = 'mobile-note' + (product==='mobile' ? ' show' : '');
-  var label = product==='mobile' ? '(Mobile)' : product==='mobile-recognition-standings' ? '(Recognition Standings)' : product==='mobile-handle-standings' ? '(Handle Standings)' : product==='tres-tiebreaker' ? '(Tres Pointer)' : product==='tres-tiebreaker-standings' ? '(Tres Pointer Standings)' : product==='dynamic-memory' ? '(Dynamic Memory)' : product==='dynamic-memory-standings' ? '(Dynamic Memory Standings)' : product==='reaction-velocity' ? '(Reaction Velocity)' : product==='reaction-velocity-standings' ? '(Reaction Velocity Standings)' : '';
+  var label = product==='mobile' ? '(Mobile)' : product==='mobile-recognition-standings' ? '(Recognition Standings)' : product==='mobile-handle-standings' ? '(Handle Standings)' : product==='dynamic-memory' ? '(Dynamic Memory)' : product==='dynamic-memory-standings' ? '(Dynamic Memory Standings)' : product==='reaction-velocity' ? '(Reaction Velocity)' : product==='reaction-velocity-standings' ? '(Reaction Velocity Standings)' : '';
   $('add-product-label').textContent = label;
   $('list-product-label').textContent = label;
   loadLicenses();
@@ -296,12 +292,6 @@ window.switchProduct = function(product){
 // place a shared board can be wiped — behind this page's real login,
 // not a tap any player passing through could reach.
 var STANDINGS_BY_PRODUCT = {
-  'tres-tiebreaker': [
-    { name: 'Tres Pointer', table: 'tres_tiebreaker_standings' }
-  ],
-  'tres-tiebreaker-standings': [
-    { name: 'Tres Pointer', table: 'tres_tiebreaker_standings' }
-  ],
   'dynamic-memory': [
     { name: 'Dynamic Memory', table: 'dynamic_memory_standings' }
   ],
