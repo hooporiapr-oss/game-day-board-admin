@@ -114,6 +114,7 @@
   <div id="dash">
     <div class="prod-tabs">
       <button class="prod-tab active" id="tab-mobile" onclick="switchProduct('mobile')">📱 Mobile</button>
+      <button class="prod-tab" id="tab-hooporia" onclick="switchProduct('hooporia')">🎯 Hooporia</button>
       <button class="prod-tab" id="tab-dynamic-memory" onclick="switchProduct('dynamic-memory')">🧠 Dynamic Memory</button>
       <button class="prod-tab" id="tab-dynamic-memory-standings" onclick="switchProduct('dynamic-memory-standings')">🏆 Dynamic Memory Standings</button>
       <button class="prod-tab" id="tab-reaction-velocity" onclick="switchProduct('reaction-velocity')">⚡ Reaction Velocity</button>
@@ -270,12 +271,13 @@ window.signOut = async function(){
 window.switchProduct = function(product){
   currentProduct = product;
   $('tab-mobile').className = 'prod-tab' + (product==='mobile' ? ' active' : '');
+  $('tab-hooporia').className = 'prod-tab' + (product==='hooporia' ? ' active' : '');
   $('tab-dynamic-memory').className = 'prod-tab' + (product==='dynamic-memory' ? ' active' : '');
   $('tab-dynamic-memory-standings').className = 'prod-tab' + (product==='dynamic-memory-standings' ? ' active' : '');
   $('tab-reaction-velocity').className = 'prod-tab' + (product==='reaction-velocity' ? ' active' : '');
   $('tab-reaction-velocity-standings').className = 'prod-tab' + (product==='reaction-velocity-standings' ? ' active' : '');
   $('mobile-note').className = 'mobile-note' + (product==='mobile' ? ' show' : '');
-  var label = product==='mobile' ? '(Mobile)' : product==='dynamic-memory' ? '(Dynamic Memory)' : product==='dynamic-memory-standings' ? '(Dynamic Memory Standings)' : product==='reaction-velocity' ? '(Reaction Velocity)' : product==='reaction-velocity-standings' ? '(Reaction Velocity Standings)' : '';
+  var label = product==='mobile' ? '(Mobile)' : product==='hooporia' ? '(Hooporia)' : product==='dynamic-memory' ? '(Dynamic Memory)' : product==='dynamic-memory-standings' ? '(Dynamic Memory Standings)' : product==='reaction-velocity' ? '(Reaction Velocity)' : product==='reaction-velocity-standings' ? '(Reaction Velocity Standings)' : '';
   $('add-product-label').textContent = label;
   $('list-product-label').textContent = label;
   loadLicenses();
@@ -310,6 +312,9 @@ var STANDINGS_BY_PRODUCT = {
   ],
   'mobile': [
     { name: 'The Handle', table: 'ritnome_mobile_handle_4qtr_standings' }
+  ],
+  'hooporia': [
+    { name: 'Hooporia', table: 'hooporia_4qtr_standings' }
   ]
 };
 
