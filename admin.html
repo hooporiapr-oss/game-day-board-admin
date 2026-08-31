@@ -148,6 +148,10 @@
          now have real, shared game standings. -->
     <div class="standings-card hidden" id="standings-card">
       <div class="standings-title">🏆 Standings — Reset a Shared Board</div>
+      <div class="standings-school-picker" style="margin-bottom:16px">
+        <label for="standings-school-select" style="display:block;font-size:.68rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#8892a0;margin-bottom:6px">Reset scope</label>
+        <select id="standings-school-select" onchange="renderStandingsSection(currentProduct)" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.4);color:#fff;font-size:.85rem"></select>
+      </div>
       <div id="standings-list"></div>
     </div>
   </div>
@@ -285,8 +289,8 @@ window.switchProduct = function(product){
 // not a tap any player passing through could reach.
 var STANDINGS_BY_PRODUCT = {
   'reaction-velocity': [
-    { name: 'Reactific', table: 'vr_reactific_standings' },
     { name: 'Reaction Speed', table: 'vr_reaction_speed_standings' },
+    { name: 'Reactific', table: 'vr_reactific_standings' },
     { name: 'Shoot It. Own It.', table: 'vr_shoot_it_own_it_standings' },
     { name: 'Make It Count.', table: 'vr_make_it_count_standings' },
     { name: 'Chain Reaction', table: 'vr_chain_reaction_standings' },
@@ -310,14 +314,32 @@ function renderStandingsSection(product){
     return;
   }
   card.className = 'standings-card';
+
+  // Every school with an issued code for this product, deduplicated,
+  // plus a genuine "All Schools" option for the rare, deliberate
+  // full wipe — pulled from the same license rows already on screen,
+  // not a separate fetch.
+  var selectEl = $('standings-school-select');
+  var previousSelection = selectEl.value;
+  var schoolNames = [];
+  (lastLicenseRows||[]).forEach(function(r){
+    if(r.school_name && schoolNames.indexOf(r.school_name)===-1) schoolNames.push(r.school_name);
+  });
+  schoolNames.sort();
+  selectEl.innerHTML = '<option value="">All Schools (every access code)</option>'
+    + schoolNames.map(function(s){return '<option value="'+esc(s)+'">'+esc(s)+'</option>'}).join('');
+  if(schoolNames.indexOf(previousSelection)!==-1) selectEl.value = previousSelection;
+  var selectedSchool = selectEl.value;
+
   $('standings-list').innerHTML = games.map(function(g){
     var safeId = g.table;
+    var scopeLabel = selectedSchool ? (' at ' + selectedSchool) : ' — every school';
     return '<div class="standings-row">'
       + '<span class="standings-game-name">' + g.name + '</span>'
       + '<button class="standings-reset-btn" id="reset-btn-' + safeId + '" onclick="offerStandingsReset(\'' + safeId + '\')">Reset</button>'
       + '</div>'
       + '<div class="standings-confirm" id="reset-confirm-' + safeId + '">'
-      + '  <div class="standings-confirm-text">Clear all standings for ' + g.name + '? Every player\'s score is permanently removed. This can\'t be undone.</div>'
+      + '  <div class="standings-confirm-text">Clear all standings for ' + g.name + scopeLabel + '? Every matching player\'s score is permanently removed. This can\'t be undone.</div>'
       + '  <div class="standings-confirm-actions">'
       + '    <button class="standings-cancel-btn" onclick="cancelStandingsReset(\'' + safeId + '\')">Cancel</button>'
       + '    <button class="standings-yes-btn" onclick="confirmStandingsReset(\'' + safeId + '\',\'' + g.name.replace(/'/g,"\\'") + '\')">Yes, Reset</button>'
@@ -347,9 +369,16 @@ window.confirmStandingsReset = async function(table, gameName){
     // rows back (Prefer: return=representation) is what lets this
     // tell the difference between "cleared" and "silently did
     // nothing" — the array length is the real proof either way.
+    //
+    // Scoped to the school selected in the dropdown — deleting
+    // school_name=eq.[school] instead of every row (id=gt.0) is what
+    // makes this a genuine per-school reset instead of the old,
+    // always-universal wipe.
+    var selectedSchool = $('standings-school-select').value;
+    var scopeQuery = selectedSchool ? ('school_name=eq.'+encodeURIComponent(selectedSchool)) : 'id=gt.0';
     var headers = authHeaders();
     headers['Prefer'] = 'return=representation';
-    var r = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=gt.0', {
+    var r = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?' + scopeQuery, {
       method: 'DELETE',
       headers: headers
     });
@@ -391,9 +420,14 @@ window.loadLicenses = async function(){
       if (!b.expires_at) return -1;
       return a.expires_at < b.expires_at ? -1 : 1;
     });
-    if (!rows.length){ tbody.innerHTML='<tr><td colspan="6" class="empty">No '+esc(currentProduct)+' licenses yet. Add your first school above.</td></tr>'; $('count').textContent=''; return; }
+    if (!rows.length){ tbody.innerHTML='<tr><td colspan="6" class="empty">No '+esc(currentProduct)+' licenses yet. Add your first school above.</td></tr>'; $('count').textContent=''; renderStandingsSection(currentProduct); return; }
     $('count').textContent = '('+rows.length+')';
     renderRows(rows, tbody);
+    // The school dropdown reads from lastLicenseRows, which renderRows
+    // just set — re-rendering here (not just from switchProduct's own
+    // call) is what makes sure the dropdown is genuinely populated
+    // on first load, since this fetch wasn't awaited up there.
+    renderStandingsSection(currentProduct);
   }catch(e){
     tbody.innerHTML = '<tr><td colspan="6" class="empty">Load failed: '+esc(e.message)+'</td></tr>';
   }
