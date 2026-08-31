@@ -114,7 +114,7 @@
   <div id="dash">
     <div class="prod-tabs">
       <button class="prod-tab active" id="tab-mobile" onclick="switchProduct('mobile')">📱 Mobile</button>
-      <button class="prod-tab" id="tab-hooporia" onclick="switchProduct('hooporia')">🎯 Hooporia</button>
+      <button class="prod-tab" id="tab-hooporia" onclick="switchProduct('hooporia')">🎯 Dynamic Memory</button>
       <button class="prod-tab" id="tab-reaction-velocity" onclick="switchProduct('reaction-velocity')">⚡ Reaction Velocity</button>
     </div>
 
@@ -275,7 +275,7 @@ window.switchProduct = function(product){
   $('tab-hooporia').className = 'prod-tab' + (product==='hooporia' ? ' active' : '');
   $('tab-reaction-velocity').className = 'prod-tab' + (product==='reaction-velocity' ? ' active' : '');
   $('mobile-note').className = 'mobile-note' + (product==='mobile' ? ' show' : '');
-  var label = product==='mobile' ? '(Mobile)' : product==='hooporia' ? '(Hooporia)' : product==='reaction-velocity' ? '(Reaction Velocity)' : '';
+  var label = product==='mobile' ? '(Mobile)' : product==='hooporia' ? '(Dynamic Memory)' : product==='reaction-velocity' ? '(Reaction Velocity)' : '';
   $('add-product-label').textContent = label;
   $('list-product-label').textContent = label;
   loadLicenses();
@@ -301,8 +301,8 @@ var STANDINGS_BY_PRODUCT = {
     { name: 'Full Game — 4 Quarters', table: 'ritnome_mobile_dynamic_memory_standings' }
   ],
   'hooporia': [
-    { name: 'Hooporia', table: 'hooporia_4qtr_standings' },
-    { name: 'The Fortress', table: 'dynamic_memory_fortress_standings' }
+    { name: 'The Fortress', table: 'dynamic_memory_fortress_standings' },
+    { name: 'Full Game — 4 Quarters', table: 'hooporia_4qtr_standings' }
   ]
 };
 
