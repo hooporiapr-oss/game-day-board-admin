@@ -116,39 +116,45 @@
       <button class="prod-tab active" id="tab-mobile" onclick="switchProduct('mobile')">📱 Mobile</button>
       <button class="prod-tab" id="tab-hooporia" onclick="switchProduct('hooporia')">🎯 Dynamic Memory</button>
       <button class="prod-tab" id="tab-reaction-velocity" onclick="switchProduct('reaction-velocity')">⚡ Reaction Velocity</button>
+      <button class="prod-tab" id="tab-ritnome" onclick="switchProduct('ritnome')">🏀 Ritnome</button>
     </div>
 
     <div class="mobile-note" id="mobile-note">⚠️ Mobile codes work differently: a device stays unlocked permanently once it enters a valid code, using local on-device storage rather than a per-visit check. Revoking or deleting a code here blocks it for any <b>new</b> device — it will not retroactively lock out a device that already unlocked with it.</div>
 
-    <div class="add-card">
-      <div class="add-title">➕ Add a License <span id="add-product-label"></span></div>
-      <div class="add-row">
-        <div class="af"><label>Code</label><input id="a-code" placeholder="LINCOLN-PREP-2026" maxlength="40"></div>
-        <div class="af"><label>School Name</label><input id="a-school" placeholder="Lincoln Prep Academy" maxlength="60"></div>
-        <div class="af"><label>Expires</label><input id="a-expires" type="date"></div>
-        <div class="af"><label>Notes (optional)</label><input id="a-notes" placeholder="Paid annual" maxlength="80"></div>
-        <button class="add-btn" onclick="addLicense()">+ Add</button>
+    <!-- License management — hidden entirely for Ritnome, which has
+         no access-code or school concept at all; it's a standalone,
+         public page linked directly from the site, not gated. -->
+    <div id="license-sections">
+      <div class="add-card">
+        <div class="add-title">➕ Add a License <span id="add-product-label"></span></div>
+        <div class="add-row">
+          <div class="af"><label>Code</label><input id="a-code" placeholder="LINCOLN-PREP-2026" maxlength="40"></div>
+          <div class="af"><label>School Name</label><input id="a-school" placeholder="Lincoln Prep Academy" maxlength="60"></div>
+          <div class="af"><label>Expires</label><input id="a-expires" type="date"></div>
+          <div class="af"><label>Notes (optional)</label><input id="a-notes" placeholder="Paid annual" maxlength="80"></div>
+          <button class="add-btn" onclick="addLicense()">+ Add</button>
+        </div>
+        <div class="msg" id="add-msg"></div>
       </div>
-      <div class="msg" id="add-msg"></div>
-    </div>
 
-    <div class="list-head">
-      <div class="list-title">Licensed Schools <span id="list-product-label"></span> <span class="count" id="count"></span></div>
-      <button class="refresh" onclick="loadLicenses()">↻ Refresh</button>
-    </div>
+      <div class="list-head">
+        <div class="list-title">Licensed Schools <span id="list-product-label"></span> <span class="count" id="count"></span></div>
+        <button class="refresh" onclick="loadLicenses()">↻ Refresh</button>
+      </div>
 
-    <table>
-      <thead>
-        <tr><th>Code</th><th>School</th><th>Expires</th><th>Status</th><th>Notes</th><th>Actions</th></tr>
-      </thead>
-      <tbody id="rows"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
-    </table>
+      <table>
+        <thead>
+          <tr><th>Code</th><th>School</th><th>Expires</th><th>Status</th><th>Notes</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="rows"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
 
     <!-- Standings reset — shown for every product, since all of them
          now have real, shared game standings. -->
     <div class="standings-card hidden" id="standings-card">
       <div class="standings-title">🏆 Standings — Reset a Shared Board</div>
-      <div class="standings-school-picker" style="margin-bottom:16px">
+      <div class="standings-school-picker" id="standings-school-picker" style="margin-bottom:16px">
         <label for="standings-school-select" style="display:block;font-size:.68rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#8892a0;margin-bottom:6px">Reset scope</label>
         <select id="standings-school-select" onchange="renderStandingsSection(currentProduct)" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.4);color:#fff;font-size:.85rem"></select>
       </div>
@@ -274,8 +280,9 @@ window.switchProduct = function(product){
   $('tab-mobile').className = 'prod-tab' + (product==='mobile' ? ' active' : '');
   $('tab-hooporia').className = 'prod-tab' + (product==='hooporia' ? ' active' : '');
   $('tab-reaction-velocity').className = 'prod-tab' + (product==='reaction-velocity' ? ' active' : '');
+  $('tab-ritnome').className = 'prod-tab' + (product==='ritnome' ? ' active' : '');
   $('mobile-note').className = 'mobile-note' + (product==='mobile' ? ' show' : '');
-  var label = product==='mobile' ? '(Mobile)' : product==='hooporia' ? '(Dynamic Memory)' : product==='reaction-velocity' ? '(Reaction Velocity)' : '';
+  var label = product==='mobile' ? '(Mobile)' : product==='hooporia' ? '(Dynamic Memory)' : product==='reaction-velocity' ? '(Reaction Velocity)' : product==='ritnome' ? '(Ritnome)' : '';
   $('add-product-label').textContent = label;
   $('list-product-label').textContent = label;
   loadLicenses();
@@ -302,6 +309,9 @@ var STANDINGS_BY_PRODUCT = {
   ],
   'hooporia': [
     { name: 'Full Game — 4 Quarters', table: 'hooporia_4qtr_standings' }
+  ],
+  'ritnome': [
+    { name: 'Ritnome (all patterns)', table: 'ritnome_standings' }
   ]
 };
 
