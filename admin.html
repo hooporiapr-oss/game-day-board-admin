@@ -308,7 +308,11 @@ var STANDINGS_BY_PRODUCT = {
     { name: 'Full Game — 4 Quarters', table: 'ritnome_mobile_dynamic_memory_standings' }
   ],
   'hooporia': [
-    { name: 'Full Game — 4 Quarters', table: 'hooporia_4qtr_standings' }
+    { name: 'Full Game — 4 Quarters', table: 'hooporia_4qtr_standings' },
+    { name: 'Play Call', table: 'dynamic_memory_quarter_standings', gameKey: 'recall' },
+    { name: 'Shot Map', table: 'dynamic_memory_quarter_standings', gameKey: 'reflex' },
+    { name: 'Pass Path', table: 'dynamic_memory_quarter_standings', gameKey: 'replay' },
+    { name: 'Read the Defense', table: 'dynamic_memory_quarter_standings', gameKey: 'recognition' }
   ],
   'ritnome': [
     { name: 'Ritnome (all patterns)', table: 'ritnome_standings' }
@@ -341,7 +345,12 @@ function renderStandingsSection(product){
   var selectedSchool = selectEl.value;
 
   $('standings-list').innerHTML = games.map(function(g){
-    var safeId = g.table;
+    // gameKey-scoped entries share one real table across several
+    // games — safeId is a unique per-row DOM key, kept entirely
+    // separate from g.table (the real, actual Supabase table this
+    // row's delete request targets), so four rows can share the
+    // same table without their DOM IDs or their deletes colliding.
+    var safeId = g.gameKey ? (g.table + '-' + g.gameKey) : g.table;
     var scopeLabel = selectedSchool ? (' at ' + selectedSchool) : ' — every school';
     return '<div class="standings-row">'
       + '<span class="standings-game-name">' + g.name + '</span>'
@@ -351,7 +360,7 @@ function renderStandingsSection(product){
       + '  <div class="standings-confirm-text">Clear all standings for ' + g.name + scopeLabel + '? Every matching player\'s score is permanently removed. This can\'t be undone.</div>'
       + '  <div class="standings-confirm-actions">'
       + '    <button class="standings-cancel-btn" onclick="cancelStandingsReset(\'' + safeId + '\')">Cancel</button>'
-      + '    <button class="standings-yes-btn" onclick="confirmStandingsReset(\'' + safeId + '\',\'' + g.name.replace(/'/g,"\\'") + '\')">Yes, Reset</button>'
+      + '    <button class="standings-yes-btn" onclick="confirmStandingsReset(\'' + safeId + '\',\'' + g.name.replace(/'/g,"\\'") + '\',\'' + g.table + '\',' + (g.gameKey ? ("'"+g.gameKey+"'") : 'null') + ')">Yes, Reset</button>'
       + '  </div>'
       + '  <div class="standings-msg" id="reset-msg-' + safeId + '"></div>'
       + '</div>';
@@ -365,8 +374,8 @@ window.cancelStandingsReset = function(table){
   $('reset-confirm-' + table).className = 'standings-confirm';
   $('reset-msg-' + table).textContent = '';
 };
-window.confirmStandingsReset = async function(table, gameName){
-  var msgEl = $('reset-msg-' + table);
+window.confirmStandingsReset = async function(safeId, gameName, actualTable, gameKey){
+  var msgEl = $('reset-msg-' + safeId);
   msgEl.className = 'standings-msg';
   msgEl.textContent = 'Clearing…';
   try{
@@ -382,12 +391,18 @@ window.confirmStandingsReset = async function(table, gameName){
     // Scoped to the school selected in the dropdown — deleting
     // school_name=eq.[school] instead of every row (id=gt.0) is what
     // makes this a genuine per-school reset instead of the old,
-    // always-universal wipe.
+    // always-universal wipe. When gameKey is present, several rows
+    // here share one real table (the four individual Dynamic Memory
+    // games), so an additional game_key filter is what keeps this
+    // scoped to just the one game clicked, not all of them together.
     var selectedSchool = $('standings-school-select').value;
-    var scopeQuery = selectedSchool ? ('school_name=eq.'+encodeURIComponent(selectedSchool)) : 'id=gt.0';
+    var scopeParts = [];
+    scopeParts.push(selectedSchool ? ('school_name=eq.'+encodeURIComponent(selectedSchool)) : 'id=gt.0');
+    if(gameKey) scopeParts.push('game_key=eq.'+encodeURIComponent(gameKey));
+    var scopeQuery = scopeParts.join('&');
     var headers = authHeaders();
     headers['Prefer'] = 'return=representation';
-    var r = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?' + scopeQuery, {
+    var r = await fetch(SUPABASE_URL + '/rest/v1/' + actualTable + '?' + scopeQuery, {
       method: 'DELETE',
       headers: headers
     });
@@ -401,7 +416,7 @@ window.confirmStandingsReset = async function(table, gameName){
     msgEl.className = 'standings-msg ok';
     msgEl.textContent = gameName + '\'s standings cleared (' + deletedRows.length + ' entries removed).';
     setTimeout(function(){
-      $('reset-confirm-' + table).className = 'standings-confirm';
+      $('reset-confirm-' + safeId).className = 'standings-confirm';
       msgEl.textContent = '';
     }, 2500);
   }catch(e){
