@@ -116,7 +116,6 @@
       <button class="prod-tab active" id="tab-mobile" onclick="switchProduct('mobile')">📱 Mobile</button>
       <button class="prod-tab" id="tab-hooporia" onclick="switchProduct('hooporia')">🎯 Dynamic Memory</button>
       <button class="prod-tab" id="tab-hooporia-standings" onclick="switchProduct('hooporia-standings')">🏆 Standings Access</button>
-      <button class="prod-tab" id="tab-reaction-velocity" onclick="switchProduct('reaction-velocity')">⚡ Reaction Velocity</button>
       <button class="prod-tab" id="tab-ritnome" onclick="switchProduct('ritnome')">🏀 Ritnome</button>
       <button class="prod-tab" id="tab-ritnome-standings" onclick="switchProduct('ritnome-standings')">🏆 Ritnome Standings Access</button>
     </div>
@@ -282,10 +281,10 @@ window.switchProduct = function(product){
   $('tab-mobile').className = 'prod-tab' + (product==='mobile' ? ' active' : '');
   $('tab-hooporia').className = 'prod-tab' + (product==='hooporia' ? ' active' : '');
   $('tab-hooporia-standings').className = 'prod-tab' + (product==='hooporia-standings' ? ' active' : '');
-  $('tab-reaction-velocity').className = 'prod-tab' + (product==='reaction-velocity' ? ' active' : '');
   $('tab-ritnome').className = 'prod-tab' + (product==='ritnome' ? ' active' : '');
+  $('tab-ritnome-standings').className = 'prod-tab' + (product==='ritnome-standings' ? ' active' : '');
   $('mobile-note').className = 'mobile-note' + (product==='mobile' ? ' show' : '');
-  var label = product==='mobile' ? '(Mobile)' : product==='hooporia' ? '(Dynamic Memory)' : product==='hooporia-standings' ? '(Standings Access)' : product==='reaction-velocity' ? '(Reaction Velocity)' : product==='ritnome' ? '(Ritnome)' : '';
+  var label = product==='mobile' ? '(Mobile)' : product==='hooporia' ? '(Dynamic Memory)' : product==='hooporia-standings' ? '(Standings Access)' : product==='ritnome' ? '(Ritnome)' : product==='ritnome-standings' ? '(Ritnome Standings Access)' : '';
   $('add-product-label').textContent = label;
   $('list-product-label').textContent = label;
   loadLicenses();
@@ -298,14 +297,6 @@ window.switchProduct = function(product){
 // place a shared board can be wiped — behind this page's real login,
 // not a tap any player passing through could reach.
 var STANDINGS_BY_PRODUCT = {
-  'reaction-velocity': [
-    { name: 'Reaction Speed', table: 'vr_reaction_speed_standings' },
-    { name: 'Reactific', table: 'vr_reactific_standings' },
-    { name: 'Shoot It. Own It.', table: 'vr_shoot_it_own_it_standings' },
-    { name: 'Make It Count.', table: 'vr_make_it_count_standings' },
-    { name: 'Chain Reaction', table: 'vr_chain_reaction_standings' },
-    { name: 'Flashpoint', table: 'vr_flashpoint_standings' }
-  ],
   'mobile': [
     { name: 'The Fortress', table: 'ritnome_mobile_handle_4qtr_standings' },
     { name: 'Full Game — 4 Quarters', table: 'ritnome_mobile_dynamic_memory_standings' }
