@@ -33,8 +33,7 @@
   .prod-tab.active{background:rgba(255,30,60,.16);border-color:rgba(255,30,60,.5);color:#fff}
   #add-product-label,#list-product-label{color:#8892a0;font-weight:700;text-transform:none;letter-spacing:0;font-size:.85rem}
   .add-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:18px 20px;margin-bottom:22px}
-  .mobile-note{display:none;background:rgba(255,180,80,.08);border:1px solid rgba(255,180,80,.3);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.8rem;color:#ffb450;line-height:1.5}
-  .mobile-note.show{display:block}
+
   .add-title{font-size:.7rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#8892a0;margin-bottom:14px}
   .add-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
   .af{display:flex;flex-direction:column;gap:5px}
@@ -113,14 +112,11 @@
   <!-- DASHBOARD -->
   <div id="dash">
     <div class="prod-tabs">
-      <button class="prod-tab active" id="tab-mobile" onclick="switchProduct('mobile')">📱 Mobile</button>
-      <button class="prod-tab" id="tab-hooporia" onclick="switchProduct('hooporia')">🎯 Dynamic Memory</button>
+      <button class="prod-tab active" id="tab-hooporia" onclick="switchProduct('hooporia')">🎯 Dynamic Memory</button>
       <button class="prod-tab" id="tab-hooporia-standings" onclick="switchProduct('hooporia-standings')">🏆 Standings Access</button>
       <button class="prod-tab" id="tab-ritnome" onclick="switchProduct('ritnome')">🏀 Ritnome</button>
       <button class="prod-tab" id="tab-ritnome-standings" onclick="switchProduct('ritnome-standings')">🏆 Ritnome Standings Access</button>
     </div>
-
-    <div class="mobile-note" id="mobile-note">⚠️ Mobile codes work differently: a device stays unlocked permanently once it enters a valid code, using local on-device storage rather than a per-visit check. Revoking or deleting a code here blocks it for any <b>new</b> device — it will not retroactively lock out a device that already unlocked with it.</div>
 
     <!-- License management — hidden entirely for Ritnome, which has
          no access-code or school concept at all; it's a standalone,
@@ -183,7 +179,7 @@ var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 // ══════════════════════════════════════════════════════
 
 var $ = function(id){ return document.getElementById(id); };
-var currentProduct = 'mobile';
+var currentProduct = 'hooporia';
 var editingId = null;
 var lastLicenseRows = [];
 var lastLicenseTbody = null;
@@ -278,13 +274,11 @@ window.signOut = async function(){
 
 window.switchProduct = function(product){
   currentProduct = product;
-  $('tab-mobile').className = 'prod-tab' + (product==='mobile' ? ' active' : '');
   $('tab-hooporia').className = 'prod-tab' + (product==='hooporia' ? ' active' : '');
   $('tab-hooporia-standings').className = 'prod-tab' + (product==='hooporia-standings' ? ' active' : '');
   $('tab-ritnome').className = 'prod-tab' + (product==='ritnome' ? ' active' : '');
   $('tab-ritnome-standings').className = 'prod-tab' + (product==='ritnome-standings' ? ' active' : '');
-  $('mobile-note').className = 'mobile-note' + (product==='mobile' ? ' show' : '');
-  var label = product==='mobile' ? '(Mobile)' : product==='hooporia' ? '(Dynamic Memory)' : product==='hooporia-standings' ? '(Standings Access)' : product==='ritnome' ? '(Ritnome)' : product==='ritnome-standings' ? '(Ritnome Standings Access)' : '';
+  var label = product==='hooporia' ? '(Dynamic Memory)' : product==='hooporia-standings' ? '(Standings Access)' : product==='ritnome' ? '(Ritnome)' : product==='ritnome-standings' ? '(Ritnome Standings Access)' : '';
   $('add-product-label').textContent = label;
   $('list-product-label').textContent = label;
   loadLicenses();
@@ -297,9 +291,6 @@ window.switchProduct = function(product){
 // place a shared board can be wiped — behind this page's real login,
 // not a tap any player passing through could reach.
 var STANDINGS_BY_PRODUCT = {
-  'mobile': [
-    { name: 'The Fortress', table: 'ritnome_mobile_fortress_standings' }
-  ],
   'hooporia': [
     { name: 'The Fortress', table: 'dynamic_memory_quarter_standings', gameKey: 'fortress' },
     { name: 'Play Call', table: 'dynamic_memory_quarter_standings', gameKey: 'recall' },
