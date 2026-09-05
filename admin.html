@@ -116,6 +116,7 @@
       <button class="prod-tab" id="tab-hooporia-standings" onclick="switchProduct('hooporia-standings')">🏆 Standings Access</button>
       <button class="prod-tab" id="tab-ritnome" onclick="switchProduct('ritnome')">🏀 Ritnome</button>
       <button class="prod-tab" id="tab-ritnome-standings" onclick="switchProduct('ritnome-standings')">🏆 Ritnome Standings Access</button>
+      <button class="prod-tab" id="tab-fortress-mobile" onclick="switchProduct('fortress-mobile')">🧩 Fortress Mobile</button>
     </div>
 
     <!-- License management — hidden entirely for Ritnome, which has
@@ -278,7 +279,8 @@ window.switchProduct = function(product){
   $('tab-hooporia-standings').className = 'prod-tab' + (product==='hooporia-standings' ? ' active' : '');
   $('tab-ritnome').className = 'prod-tab' + (product==='ritnome' ? ' active' : '');
   $('tab-ritnome-standings').className = 'prod-tab' + (product==='ritnome-standings' ? ' active' : '');
-  var label = product==='hooporia' ? '(Dynamic Memory)' : product==='hooporia-standings' ? '(Standings Access)' : product==='ritnome' ? '(Ritnome)' : product==='ritnome-standings' ? '(Ritnome Standings Access)' : '';
+  $('tab-fortress-mobile').className = 'prod-tab' + (product==='fortress-mobile' ? ' active' : '');
+  var label = product==='hooporia' ? '(Dynamic Memory)' : product==='hooporia-standings' ? '(Standings Access)' : product==='ritnome' ? '(Ritnome)' : product==='ritnome-standings' ? '(Ritnome Standings Access)' : product==='fortress-mobile' ? '(Fortress Mobile)' : '';
   $('add-product-label').textContent = label;
   $('list-product-label').textContent = label;
   loadLicenses();
@@ -294,11 +296,13 @@ var STANDINGS_BY_PRODUCT = {
   'hooporia': [
     { name: 'The Fortress', table: 'dynamic_memory_quarter_standings', gameKey: 'fortress' },
     { name: 'Recall', table: 'dynamic_memory_quarter_standings', gameKey: 'recall' },
-    { name: 'Replay', table: 'dynamic_memory_quarter_standings', gameKey: 'replay' },
     { name: 'Recognition', table: 'dynamic_memory_quarter_standings', gameKey: 'recognition' }
   ],
   'ritnome': [
     { name: 'Ritnome (all patterns)', table: 'ritnome_standings' }
+  ],
+  'fortress-mobile': [
+    { name: 'The Fortress (Mobile)', table: 'ritnome_mobile_fortress_standings' }
   ]
 };
 
