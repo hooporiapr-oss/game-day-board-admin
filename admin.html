@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PARADISO · License Admin</title>
+<title>Gostar Digital · License Admin</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#0a0a0f;color:#e8eef5;min-height:100vh;padding:24px}
@@ -28,9 +28,12 @@
 
   /* dashboard */
   #dash{display:none}
-  .prod-tabs{display:flex;gap:8px;margin-bottom:18px}
+  .prod-tabs{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
   .prod-tab{padding:9px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);color:#8892a0;font-weight:800;font-size:.82rem;cursor:pointer;letter-spacing:.02em}
   .prod-tab.active{background:rgba(255,30,60,.16);border-color:rgba(255,30,60,.5);color:#fff}
+  .prod-tab.legacy{opacity:.55;font-size:.74rem}
+  .prod-note{font-size:.72rem;color:#7d8798;margin-bottom:18px;line-height:1.5}
+  .prod-note b{color:#a8b3c4}
   #add-product-label,#list-product-label{color:#8892a0;font-weight:700;text-transform:none;letter-spacing:0;font-size:.85rem}
   .add-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:18px 20px;margin-bottom:22px}
 
@@ -42,6 +45,7 @@
   .af input#a-code{width:200px;text-transform:uppercase}
   .af input#a-school{width:220px}
   .add-btn{padding:11px 20px;border:none;border-radius:8px;background:linear-gradient(135deg,#00d9a5,#00a884);color:#062;font-weight:900;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;font-size:.85rem}
+  .year-btn{padding:11px 14px;border:1px solid rgba(0,140,255,.35);border-radius:8px;background:rgba(0,140,255,.12);color:#4db8ff;font-weight:800;cursor:pointer;font-size:.78rem}
 
   .list-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
   .list-title{font-size:.7rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#8892a0}
@@ -56,7 +60,9 @@
   .pill.active{background:rgba(0,217,165,.18);color:#00d9a5}
   .pill.inactive{background:rgba(255,107,107,.18);color:#ff8888}
   .pill.expired{background:rgba(255,180,80,.18);color:#ffb450}
+  .pill.sold{background:rgba(124,58,237,.2);color:#c4b5fd;margin-left:6px}
   .exp-soon{color:#ffb450;font-weight:700}
+  .exp-never{color:#ffb450}
   .row-actions{display:flex;gap:6px;flex-wrap:wrap}
   .mini{padding:5px 10px;border-radius:6px;font-size:.7rem;font-weight:800;cursor:pointer;border:1px solid transparent}
   .mini.renew{background:rgba(0,140,255,.15);border-color:rgba(0,140,255,.3);color:#4db8ff}
@@ -65,11 +71,6 @@
   .empty{text-align:center;color:#5a6070;padding:30px}
   .count{font-size:.7rem;color:#8892a0}
 
-  /* Standings reset — deliberately its own separate, lower-key card
-     from license management above. This used to be a button on every
-     public game screen; moving it here means wiping a shared board
-     now requires a real login, not just a tap a curious player could
-     reach on a shared classroom device. */
   .standings-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:18px 20px;margin-top:22px}
   .standings-card.hidden{display:none}
   .standings-title{font-size:.7rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:#8892a0;margin-bottom:14px}
@@ -93,7 +94,7 @@
 
   <div class="top">
     <div class="brand">
-      <div class="kick">⚡ Reactific</div>
+      <div class="kick">⚡ Gostar Digital</div>
       <div class="name">License Admin</div>
       <div class="sub">Manage School Access</div>
     </div>
@@ -113,15 +114,13 @@
   <div id="dash">
     <div class="prod-tabs">
       <button class="prod-tab active" id="tab-hooporia" onclick="switchProduct('hooporia')">🎯 Dynamic Memory</button>
-      <button class="prod-tab" id="tab-hooporia-standings" onclick="switchProduct('hooporia-standings')">🏆 Standings Access</button>
-      <button class="prod-tab" id="tab-ritnome" onclick="switchProduct('ritnome')">🏀 Ritnome</button>
-      <button class="prod-tab" id="tab-ritnome-standings" onclick="switchProduct('ritnome-standings')">🏆 Ritnome Standings Access</button>
       <button class="prod-tab" id="tab-fortress-mobile" onclick="switchProduct('fortress-mobile')">🧩 Fortress Mobile</button>
+      <button class="prod-tab legacy" id="tab-ritnome" onclick="switchProduct('ritnome')">Retired · Ritnome</button>
+      <button class="prod-tab legacy" id="tab-hooporia-standings" onclick="switchProduct('hooporia-standings')">Retired · Memory Standings</button>
+      <button class="prod-tab legacy" id="tab-ritnome-standings" onclick="switchProduct('ritnome-standings')">Retired · Ritnome Standings</button>
     </div>
+    <div class="prod-note" id="prod-note"></div>
 
-    <!-- License management — hidden entirely for Ritnome, which has
-         no access-code or school concept at all; it's a standalone,
-         public page linked directly from the site, not gated. -->
     <div id="license-sections">
       <div class="add-card">
         <div class="add-title">➕ Add a License <span id="add-product-label"></span></div>
@@ -129,7 +128,8 @@
           <div class="af"><label>Code</label><input id="a-code" placeholder="LINCOLN-PREP-2026" maxlength="40"></div>
           <div class="af"><label>School Name</label><input id="a-school" placeholder="Lincoln Prep Academy" maxlength="60"></div>
           <div class="af"><label>Expires</label><input id="a-expires" type="date"></div>
-          <div class="af"><label>Notes (optional)</label><input id="a-notes" placeholder="Paid annual" maxlength="80"></div>
+          <div class="af"><label>&nbsp;</label><button class="year-btn" onclick="setOneYear()">+1 year</button></div>
+          <div class="af"><label>Notes (optional)</label><input id="a-notes" placeholder="e.g. 30-day trial, comp, paid annual" maxlength="80"></div>
           <button class="add-btn" onclick="addLicense()">+ Add</button>
         </div>
         <div class="msg" id="add-msg"></div>
@@ -148,8 +148,6 @@
       </table>
     </div>
 
-    <!-- Standings reset — shown for every product, since all of them
-         now have real, shared game standings. -->
     <div class="standings-card hidden" id="standings-card">
       <div class="standings-title">🏆 Standings — Reset a Shared Board</div>
       <div class="standings-school-picker" id="standings-school-picker" style="margin-bottom:16px">
@@ -165,15 +163,22 @@
 <script>
 // ══════════════════════════════════════════════════════
 //  This admin panel talks to Supabase directly over fetch(),
-//  the same proven approach the gate pages already use —
-//  deliberately NOT loading the Supabase JS client from a
-//  CDN. That earlier approach meant this page's login button
-//  depended on a third-party script finishing over the network
-//  on every single load; if that ever failed (a connection
-//  hiccup, a blocking extension, a slow CDN moment), the whole
-//  page silently broke with zero explanation. Removing that
-//  dependency makes that entire category of failure structurally
-//  impossible — there's nothing external left to fail to load.
+//  the same proven approach the gate pages already use.
+//
+//  PRODUCT SCOPES, after the merge:
+//
+//    hooporia        — Dynamic Memory. One code now opens the
+//                      memory games, Ritnome, and both standings
+//                      boards. This is the product sold through
+//                      Basketball Money, and the one to issue for
+//                      trials and comps.
+//    fortress-mobile — The Fortress Mobile. Still its own separate
+//                      site with its own separate gate.
+//
+//  The three "Retired" tabs are the old, pre-merge scopes. Their
+//  gates no longer exist, so a NEW code issued under them would
+//  unlock nothing. They stay visible only so existing rows can
+//  still be seen and revoked — adding is blocked there on purpose.
 // ══════════════════════════════════════════════════════
 var SUPABASE_URL = 'https://sdaphocueugzfvjovuxd.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkYXBob2N1ZXVnemZ2am92dXhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjQyMDgsImV4cCI6MjA5OTIwMDIwOH0.pDAzf4P6dD9eNEBlnP95SdF5BI-R84-Rdc0vKzYcn7M';
@@ -185,6 +190,34 @@ var editingId = null;
 var lastLicenseRows = [];
 var lastLicenseTbody = null;
 var accessToken = null, refreshToken = null;
+
+var PRODUCTS = {
+  'hooporia': {
+    label: '(Dynamic Memory)',
+    retired: false,
+    note: 'One code opens the memory games, Ritnome and both standings boards. This is what Basketball Money sells, and what to issue for trials and comps.'
+  },
+  'fortress-mobile': {
+    label: '(Fortress Mobile)',
+    retired: false,
+    note: 'Separate site, separate gate. A device stays unlocked once a code is entered, so an expiry here will not lock a device that already got in.'
+  },
+  'ritnome': {
+    label: '(Ritnome — retired)',
+    retired: true,
+    note: 'Retired. Ritnome is now part of Dynamic Memory and its own gate is gone, so a new code here would unlock nothing. Existing rows are shown so they can be revoked.'
+  },
+  'hooporia-standings': {
+    label: '(Memory Standings — retired)',
+    retired: true,
+    note: 'Retired. Standings no longer has a separate gate — a Dynamic Memory code opens it. Existing rows are shown so they can be revoked.'
+  },
+  'ritnome-standings': {
+    label: '(Ritnome Standings — retired)',
+    retired: true,
+    note: 'Retired. Standings no longer has a separate gate — a Dynamic Memory code opens it. Existing rows are shown so they can be revoked.'
+  }
+};
 
 function saveSession(at, rt){
   accessToken = at; refreshToken = rt;
@@ -207,10 +240,8 @@ function authHeaders(){
 async function checkSession(){
   try{ accessToken = localStorage.getItem('admin-at'); refreshToken = localStorage.getItem('admin-rt'); }catch(e){}
   if (!accessToken){ showLogin(); return; }
-  // confirm the stored token still actually works before trusting it
   var ok = await tryRequest(SUPABASE_URL + '/rest/v1/licenses?select=id&limit=1');
   if (ok) { showDash(); return; }
-  // token may just be expired — try a refresh before giving up
   if (refreshToken && await doRefresh()) { showDash(); return; }
   clearSession();
   showLogin();
@@ -275,30 +306,39 @@ window.signOut = async function(){
 
 window.switchProduct = function(product){
   currentProduct = product;
-  $('tab-hooporia').className = 'prod-tab' + (product==='hooporia' ? ' active' : '');
-  $('tab-hooporia-standings').className = 'prod-tab' + (product==='hooporia-standings' ? ' active' : '');
-  $('tab-ritnome').className = 'prod-tab' + (product==='ritnome' ? ' active' : '');
-  $('tab-ritnome-standings').className = 'prod-tab' + (product==='ritnome-standings' ? ' active' : '');
-  $('tab-fortress-mobile').className = 'prod-tab' + (product==='fortress-mobile' ? ' active' : '');
-  var label = product==='hooporia' ? '(Dynamic Memory)' : product==='hooporia-standings' ? '(Standings Access)' : product==='ritnome' ? '(Ritnome)' : product==='ritnome-standings' ? '(Ritnome Standings Access)' : product==='fortress-mobile' ? '(Fortress Mobile)' : '';
-  $('add-product-label').textContent = label;
-  $('list-product-label').textContent = label;
+  Object.keys(PRODUCTS).forEach(function(p){
+    var el = $('tab-' + p);
+    if (!el) return;
+    el.className = 'prod-tab' + (PRODUCTS[p].retired ? ' legacy' : '') + (p === product ? ' active' : '');
+  });
+
+  var cfg = PRODUCTS[product] || { label:'', retired:false, note:'' };
+  $('add-product-label').textContent = cfg.label;
+  $('list-product-label').textContent = cfg.label;
+  $('prod-note').innerHTML = cfg.note;
+
+  // Adding under a retired scope would produce a code that opens
+  // nothing, so the form is closed off rather than left as a trap.
+  var addCard = document.querySelector('.add-card');
+  if (addCard) addCard.style.display = cfg.retired ? 'none' : 'block';
+
   loadLicenses();
   renderStandingsSection(product);
 };
 
+// Expiry is now the norm rather than the exception — a license is
+// one year, so this fills the date without any counting.
+window.setOneYear = function(){
+  var d = new Date(); d.setFullYear(d.getFullYear() + 1);
+  $('a-expires').value = d.toISOString().slice(0,10);
+};
+
 // ── standings reset ──
-// Every game's own standings screen used to carry its own "Reset"
-// button; that's now removed from every game, and this is the only
-// place a shared board can be wiped — behind this page's real login,
-// not a tap any player passing through could reach.
 var STANDINGS_BY_PRODUCT = {
   'hooporia': [
     { name: 'The Fortress', table: 'dynamic_memory_quarter_standings', gameKey: 'fortress' },
     { name: 'Recall', table: 'dynamic_memory_quarter_standings', gameKey: 'recall' },
-    { name: 'Recognition', table: 'dynamic_memory_quarter_standings', gameKey: 'recognition' }
-  ],
-  'ritnome': [
+    { name: 'Recognition', table: 'dynamic_memory_quarter_standings', gameKey: 'recognition' },
     { name: 'Ritnome (all patterns)', table: 'ritnome_standings' }
   ],
   'fortress-mobile': [
@@ -315,10 +355,6 @@ function renderStandingsSection(product){
   }
   card.className = 'standings-card';
 
-  // Every school with an issued code for this product, deduplicated,
-  // plus a genuine "All Schools" option for the rare, deliberate
-  // full wipe — pulled from the same license rows already on screen,
-  // not a separate fetch.
   var selectEl = $('standings-school-select');
   var previousSelection = selectEl.value;
   var schoolNames = [];
@@ -332,11 +368,6 @@ function renderStandingsSection(product){
   var selectedSchool = selectEl.value;
 
   $('standings-list').innerHTML = games.map(function(g){
-    // gameKey-scoped entries share one real table across several
-    // games — safeId is a unique per-row DOM key, kept entirely
-    // separate from g.table (the real, actual Supabase table this
-    // row's delete request targets), so four rows can share the
-    // same table without their DOM IDs or their deletes colliding.
     var safeId = g.gameKey ? (g.table + '-' + g.gameKey) : g.table;
     var scopeLabel = selectedSchool ? (' at ' + selectedSchool) : ' — every school';
     return '<div class="standings-row">'
@@ -367,21 +398,9 @@ window.confirmStandingsReset = async function(safeId, gameName, actualTable, gam
   msgEl.textContent = 'Clearing…';
   try{
     // A merely-successful HTTP status here does NOT prove anything
-    // was actually deleted — if a table's row-level-security policy
-    // silently blocks the delete (no matching "delete" policy, for
-    // example), Supabase still returns a normal success response
-    // while genuinely deleting zero rows. Asking for the deleted
-    // rows back (Prefer: return=representation) is what lets this
-    // tell the difference between "cleared" and "silently did
-    // nothing" — the array length is the real proof either way.
-    //
-    // Scoped to the school selected in the dropdown — deleting
-    // school_name=eq.[school] instead of every row (id=gt.0) is what
-    // makes this a genuine per-school reset instead of the old,
-    // always-universal wipe. When gameKey is present, several rows
-    // here share one real table (the four individual Dynamic Memory
-    // games), so an additional game_key filter is what keeps this
-    // scoped to just the one game clicked, not all of them together.
+    // was actually deleted — asking for the deleted rows back
+    // (Prefer: return=representation) is what lets this tell the
+    // difference between "cleared" and "silently did nothing".
     var selectedSchool = $('standings-school-select').value;
     var scopeParts = [];
     scopeParts.push(selectedSchool ? ('school_name=eq.'+encodeURIComponent(selectedSchool)) : 'id=gt.0');
@@ -431,13 +450,9 @@ window.loadLicenses = async function(){
       if (!b.expires_at) return -1;
       return a.expires_at < b.expires_at ? -1 : 1;
     });
-    if (!rows.length){ tbody.innerHTML='<tr><td colspan="6" class="empty">No '+esc(currentProduct)+' licenses yet. Add your first school above.</td></tr>'; $('count').textContent=''; renderStandingsSection(currentProduct); return; }
+    if (!rows.length){ tbody.innerHTML='<tr><td colspan="6" class="empty">No licenses under this product yet.</td></tr>'; $('count').textContent=''; renderStandingsSection(currentProduct); return; }
     $('count').textContent = '('+rows.length+')';
     renderRows(rows, tbody);
-    // The school dropdown reads from lastLicenseRows, which renderRows
-    // just set — re-rendering here (not just from switchProduct's own
-    // call) is what makes sure the dropdown is genuinely populated
-    // on first load, since this fetch wasn't awaited up there.
     renderStandingsSection(currentProduct);
   }catch(e){
     tbody.innerHTML = '<tr><td colspan="6" class="empty">Load failed: '+esc(e.message)+'</td></tr>';
@@ -455,12 +470,17 @@ function renderRows(data, tbody){
     else if (expired) statusPill = '<span class="pill expired">Expired</span>';
     else statusPill = '<span class="pill active">Active</span>';
 
+    // Codes that came from a purchase are marked, so a sold license
+    // is never mistaken for one issued by hand.
+    var sold = (r.notes || '').indexOf('Purchased through Basketball Money') !== -1;
+    if (sold) statusPill += '<span class="pill sold">Sold</span>';
+
     if (r.expires_at){
       var days = Math.ceil((new Date(r.expires_at+'T23:59:59') - today)/86400000);
       if (days < 0) expText = r.expires_at;
       else if (days <= 30) expText = '<span class="exp-soon">'+r.expires_at+' ('+days+'d)</span>';
       else expText = r.expires_at;
-    } else expText = '<span style="color:#5a6070">never</span>';
+    } else expText = '<span class="exp-never">never</span>';
 
     if (r.id === editingId){
       return '<tr>'
@@ -493,6 +513,10 @@ function renderRows(data, tbody){
 }
 
 window.addLicense = async function(){
+  if ((PRODUCTS[currentProduct]||{}).retired){
+    setAddMsg('That product is retired — issue a Dynamic Memory code instead','bad');
+    return;
+  }
   var code = $('a-code').value.trim().toUpperCase();
   var school = $('a-school').value.trim();
   var expires = $('a-expires').value || null;
@@ -511,7 +535,7 @@ window.addLicense = async function(){
       return;
     }
     $('a-code').value=''; $('a-school').value=''; $('a-expires').value=''; $('a-notes').value='';
-    setAddMsg('✓ License added to '+currentProduct,'ok');
+    setAddMsg('✓ License added','ok');
     loadLicenses();
   }catch(e){
     setAddMsg('Connection problem — please try again','bad');
