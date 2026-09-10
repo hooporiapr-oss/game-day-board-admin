@@ -31,8 +31,7 @@
   .prod-tabs{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
   .prod-tab{padding:9px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);color:#8892a0;font-weight:800;font-size:.82rem;cursor:pointer;letter-spacing:.02em}
   .prod-tab.active{background:rgba(255,30,60,.16);border-color:rgba(255,30,60,.5);color:#fff}
-  .prod-tab.legacy{opacity:.55;font-size:.74rem}
-  .prod-note{font-size:.72rem;color:#7d8798;margin-bottom:18px;line-height:1.5}
+    .prod-note{font-size:.72rem;color:#7d8798;margin-bottom:18px;line-height:1.5}
   .prod-note b{color:#a8b3c4}
   #add-product-label,#list-product-label{color:#8892a0;font-weight:700;text-transform:none;letter-spacing:0;font-size:.85rem}
   .add-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:18px 20px;margin-bottom:22px}
@@ -115,9 +114,6 @@
     <div class="prod-tabs">
       <button class="prod-tab active" id="tab-hooporia" onclick="switchProduct('hooporia')">🎯 Dynamic Memory</button>
       <button class="prod-tab" id="tab-fortress-mobile" onclick="switchProduct('fortress-mobile')">🧩 Fortress Mobile</button>
-      <button class="prod-tab legacy" id="tab-ritnome" onclick="switchProduct('ritnome')">Retired · Ritnome</button>
-      <button class="prod-tab legacy" id="tab-hooporia-standings" onclick="switchProduct('hooporia-standings')">Retired · Memory Standings</button>
-      <button class="prod-tab legacy" id="tab-ritnome-standings" onclick="switchProduct('ritnome-standings')">Retired · Ritnome Standings</button>
     </div>
     <div class="prod-note" id="prod-note"></div>
 
@@ -175,10 +171,10 @@
 //    fortress-mobile — The Fortress Mobile. Still its own separate
 //                      site with its own separate gate.
 //
-//  The three "Retired" tabs are the old, pre-merge scopes. Their
-//  gates no longer exist, so a NEW code issued under them would
-//  unlock nothing. They stay visible only so existing rows can
-//  still be seen and revoked — adding is blocked there on purpose.
+//  The old pre-merge scopes (ritnome, hooporia-standings,
+//  ritnome-standings) are gone from this panel. Any rows still
+//  carrying those products are dead — their gates no longer exist —
+//  and can be cleared out directly in Supabase.
 // ══════════════════════════════════════════════════════
 var SUPABASE_URL = 'https://sdaphocueugzfvjovuxd.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkYXBob2N1ZXVnemZ2am92dXhkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2MjQyMDgsImV4cCI6MjA5OTIwMDIwOH0.pDAzf4P6dD9eNEBlnP95SdF5BI-R84-Rdc0vKzYcn7M';
@@ -194,28 +190,11 @@ var accessToken = null, refreshToken = null;
 var PRODUCTS = {
   'hooporia': {
     label: '(Dynamic Memory)',
-    retired: false,
     note: 'One code opens the memory games, Ritnome and both standings boards. This is what Basketball Money sells, and what to issue for trials and comps.'
   },
   'fortress-mobile': {
     label: '(Fortress Mobile)',
-    retired: false,
     note: 'Separate site, separate gate. A device stays unlocked once a code is entered, so an expiry here will not lock a device that already got in.'
-  },
-  'ritnome': {
-    label: '(Ritnome — retired)',
-    retired: true,
-    note: 'Retired. Ritnome is now part of Dynamic Memory and its own gate is gone, so a new code here would unlock nothing. Existing rows are shown so they can be revoked.'
-  },
-  'hooporia-standings': {
-    label: '(Memory Standings — retired)',
-    retired: true,
-    note: 'Retired. Standings no longer has a separate gate — a Dynamic Memory code opens it. Existing rows are shown so they can be revoked.'
-  },
-  'ritnome-standings': {
-    label: '(Ritnome Standings — retired)',
-    retired: true,
-    note: 'Retired. Standings no longer has a separate gate — a Dynamic Memory code opens it. Existing rows are shown so they can be revoked.'
   }
 };
 
@@ -309,18 +288,13 @@ window.switchProduct = function(product){
   Object.keys(PRODUCTS).forEach(function(p){
     var el = $('tab-' + p);
     if (!el) return;
-    el.className = 'prod-tab' + (PRODUCTS[p].retired ? ' legacy' : '') + (p === product ? ' active' : '');
+    el.className = 'prod-tab' + (p === product ? ' active' : '');
   });
 
-  var cfg = PRODUCTS[product] || { label:'', retired:false, note:'' };
+  var cfg = PRODUCTS[product] || { label:'', note:'' };
   $('add-product-label').textContent = cfg.label;
   $('list-product-label').textContent = cfg.label;
   $('prod-note').innerHTML = cfg.note;
-
-  // Adding under a retired scope would produce a code that opens
-  // nothing, so the form is closed off rather than left as a trap.
-  var addCard = document.querySelector('.add-card');
-  if (addCard) addCard.style.display = cfg.retired ? 'none' : 'block';
 
   loadLicenses();
   renderStandingsSection(product);
@@ -513,10 +487,6 @@ function renderRows(data, tbody){
 }
 
 window.addLicense = async function(){
-  if ((PRODUCTS[currentProduct]||{}).retired){
-    setAddMsg('That product is retired — issue a Dynamic Memory code instead','bad');
-    return;
-  }
   var code = $('a-code').value.trim().toUpperCase();
   var school = $('a-school').value.trim();
   var expires = $('a-expires').value || null;
