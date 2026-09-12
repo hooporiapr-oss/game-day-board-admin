@@ -138,9 +138,9 @@
 
       <table>
         <thead>
-          <tr><th>Code</th><th>School</th><th>Expires</th><th>Status</th><th>Notes</th><th>Actions</th></tr>
+          <tr><th>Code</th><th>School</th><th>Expires</th><th>Status</th><th>Devices</th><th>Notes</th><th>Actions</th></tr>
         </thead>
-        <tbody id="rows"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+        <tbody id="rows"><tr><td colspan="7" class="empty">Loading…</td></tr></tbody>
       </table>
     </div>
 
@@ -186,6 +186,7 @@ var editingId = null;
 var lastLicenseRows = [];
 var lastLicenseTbody = null;
 var accessToken = null, refreshToken = null;
+var DEVICE_COUNTS = {};
 
 var PRODUCTS = {
   'hooporia': {
@@ -408,28 +409,43 @@ window.confirmStandingsReset = async function(safeId, gameName, actualTable, gam
 // ── licenses ──
 window.loadLicenses = async function(){
   var tbody = $('rows');
-  tbody.innerHTML = '<tr><td colspan="6" class="empty">Loading…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" class="empty">Loading…</td></tr>';
   try{
     var url = SUPABASE_URL + '/rest/v1/licenses?select=*&product=eq.' + encodeURIComponent(currentProduct);
     var r = await fetch(url, { headers: authHeaders() });
     if (!r.ok){
       var errBody = await r.json().catch(function(){ return {}; });
-      tbody.innerHTML = '<tr><td colspan="6" class="empty">Error: '+esc(errBody.message||r.statusText)+'</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" class="empty">Error: '+esc(errBody.message||r.statusText)+'</td></tr>';
       return;
     }
     var data = await r.json();
+
+    // How many devices each code is currently using. One request for
+    // the whole product, counted here, rather than one per row.
+    DEVICE_COUNTS = {};
+    try{
+      var dr = await fetch(SUPABASE_URL + '/rest/v1/license_devices?select=license_code&product=eq.'
+        + encodeURIComponent(currentProduct), { headers: authHeaders() });
+      if (dr.ok){
+        var devs = await dr.json();
+        (devs||[]).forEach(function(d){
+          DEVICE_COUNTS[d.license_code] = (DEVICE_COUNTS[d.license_code]||0) + 1;
+        });
+      }
+    }catch(e){}
+
     var rows = (data || []).slice().sort(function(a,b){
       if (!a.expires_at && !b.expires_at) return 0;
       if (!a.expires_at) return 1;
       if (!b.expires_at) return -1;
       return a.expires_at < b.expires_at ? -1 : 1;
     });
-    if (!rows.length){ tbody.innerHTML='<tr><td colspan="6" class="empty">No licenses under this product yet.</td></tr>'; $('count').textContent=''; renderStandingsSection(currentProduct); return; }
+    if (!rows.length){ tbody.innerHTML='<tr><td colspan="7" class="empty">No licenses under this product yet.</td></tr>'; $('count').textContent=''; renderStandingsSection(currentProduct); return; }
     $('count').textContent = '('+rows.length+')';
     renderRows(rows, tbody);
     renderStandingsSection(currentProduct);
   }catch(e){
-    tbody.innerHTML = '<tr><td colspan="6" class="empty">Load failed: '+esc(e.message)+'</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="empty">Load failed: '+esc(e.message)+'</td></tr>';
   }
 };
 
@@ -462,6 +478,7 @@ function renderRows(data, tbody){
         + '<td><input id="edit-school-'+r.id+'" value="'+esc(r.school_name||'')+'" style="width:100%"></td>'
         + '<td><input id="edit-expires-'+r.id+'" type="date" value="'+esc(r.expires_at||'')+'" style="width:100%"></td>'
         + '<td>'+statusPill+'</td>'
+        + '<td></td>'
         + '<td><input id="edit-notes-'+r.id+'" value="'+esc(r.notes||'')+'" style="width:100%"></td>'
         + '<td><div class="row-actions">'
           + '<button class="mini renew" onclick="saveEdit(\''+r.id+'\')">Save</button>'
@@ -470,15 +487,30 @@ function renderRows(data, tbody){
         + '</tr>';
     }
 
+    // Unlimited codes are the ones issued by hand for recruiting and
+    // trials; a capped one shows how close it is to its limit.
+    var used = DEVICE_COUNTS[r.code] || 0;
+    var cap = r.max_devices;
+    var devText;
+    if (cap >= 9999){
+      devText = '<span style="color:#5a6070">' + used + ' · no limit</span>';
+    } else if (used >= cap){
+      devText = '<span style="color:#ff8888;font-weight:800">' + used + ' / ' + cap + ' full</span>';
+    } else {
+      devText = '<span style="color:#8892a0">' + used + ' / ' + cap + '</span>';
+    }
+
     return '<tr>'
       + '<td class="code-cell">'+esc(r.code)+'</td>'
       + '<td>'+esc(r.school_name||'')+'</td>'
       + '<td>'+expText+'</td>'
       + '<td>'+statusPill+'</td>'
+      + '<td style="font-size:.82rem">'+devText+'</td>'
       + '<td style="color:#8892a0;font-size:.82rem">'+esc(r.notes||'')+'</td>'
       + '<td><div class="row-actions">'
         + '<button class="mini toggle" onclick="startEdit(\''+r.id+'\')">Edit</button>'
         + '<button class="mini renew" onclick="renew(\''+r.id+'\')">+1yr</button>'
+        + (used > 0 ? '<button class="mini toggle" onclick="resetDevices(\''+esc(r.code)+'\')">Reset devices</button>' : '')
         + '<button class="mini toggle" onclick="toggle(\''+r.id+'\','+(r.active?'false':'true')+')">'+(r.active?'Revoke':'Enable')+'</button>'
         + '<button class="mini del" onclick="del(\''+r.id+'\',\''+esc(r.code)+'\')">Delete</button>'
       + '</div></td>'
@@ -569,6 +601,25 @@ window.toggle = async function(id, makeActive){
     });
     if (!r.ok){ alert('Error updating license'); return; }
     loadLicenses();
+  }catch(e){ alert('Connection problem — please try again'); }
+};
+
+// Clears the devices recorded against a code so its slots start
+// fresh. The code itself is untouched — this is the answer to "I
+// changed my phone and now it says the code is in use".
+window.resetDevices = async function(code){
+  if (!confirm('Reset devices for "'+code+'"? Anyone currently using it will need to enter the code again, and the count starts from zero.')) return;
+  try{
+    var r = await fetch(SUPABASE_URL + '/rest/v1/license_devices?license_code=eq.'
+      + encodeURIComponent(code) + '&product=eq.' + encodeURIComponent(currentProduct), {
+      method: 'DELETE',
+      headers: Object.assign({}, authHeaders(), { 'Prefer': 'return=representation' })
+    });
+    if (!r.ok){ alert('Error resetting devices'); return; }
+    var removed = [];
+    try{ removed = await r.json(); }catch(e){}
+    loadLicenses();
+    alert('Devices cleared (' + removed.length + ' removed).');
   }catch(e){ alert('Connection problem — please try again'); }
 };
 
